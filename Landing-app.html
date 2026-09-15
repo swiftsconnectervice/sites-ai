@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Method App — Tu gimnasio, tu cocina, tu progreso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --cream:#F5F0E8; --carbon:#1A1A1A; --forest:#2D5A3D; --forest-hi:#3E7A54;
+  --amber:#C8793A; --green-lt:#7FB685; --gray:#6E675E; --gray-lt:#9A938A;
+  --line:rgba(26,26,26,.10); --white:#FFFDF8; --jak:'Plus Jakarta Sans',sans-serif; --inter:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--inter);background:var(--cream);color:var(--carbon);-webkit-font-smoothing:antialiased}
+::selection{background:var(--forest);color:var(--cream)}
+button{font-family:inherit;cursor:pointer}
+img,svg{display:block}
+a{color:inherit}
+
+/* ============ PAGE FRAME (canvas flotante como la referencia) ============ */
+.page{width:100%;background:var(--cream);position:relative}
+
+/* ============ NAV ============ */
+.nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:30px;padding:16px 40px;background:rgba(245,240,232,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font:800 18px var(--jak);letter-spacing:-.01em;text-decoration:none}
+.brand svg{width:26px;height:26px;color:var(--forest)}
+.nlink{font:600 14px var(--inter);color:var(--gray);text-decoration:none}
+.nlink:hover{color:var(--carbon)}
+.nav .btn{margin-left:auto;height:46px;padding:0 22px;font-size:14px;border-radius:999px}
+
+/* ============ BOTONES ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 26px;border-radius:12px;border:0;font:600 16px var(--inter);text-decoration:none;transition:transform .25s,box-shadow .25s,background .25s}
+.btn svg{width:19px;height:19px;fill:currentColor}
+.btn-dark{background:var(--carbon);color:var(--cream);box-shadow:0 14px 30px rgba(26,26,26,.28)}
+.btn-dark:hover{transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--carbon);border:1.5px solid rgba(26,26,26,.28)}
+.btn-ghost:hover{border-color:var(--carbon);transform:translateY(-2px)}
+.btn-forest{background:var(--forest);color:var(--cream);box-shadow:0 14px 34px rgba(45,90,61,.35)}
+.btn-forest:hover{transform:translateY(-2px);background:var(--forest-hi)}
+.btn-xl{height:64px;padding:0 32px;font-size:18px}
+
+/* ============ UTILIDADES ============ */
+.wrap{max-width:1160px;margin:0 auto;padding:0 40px}
+.sec{padding:88px 0}
+.center{text-align:center}
+.h2{font:800 clamp(26px,3.4vw,38px)/1.15 var(--jak);letter-spacing:-.02em}
+.sub{margin-top:12px;color:var(--gray);font-size:17px;line-height:1.55}
+.sub.it,.quote{font-style:italic}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+
+/* ============ PHONE FRAME (escalable con em) ============ */
+.phone{position:relative;width:var(--w,340px);max-width:100%;background:#0B0B0B;border-radius:calc(var(--w)*.14);padding:calc(var(--w)*.033);box-shadow:0 40px 90px rgba(20,15,5,.35);margin:auto}
+.screen{position:relative;border-radius:calc(var(--w)*.115);background:var(--white);color:var(--carbon);overflow:hidden;aspect-ratio:9/19.2;font-size:calc(var(--w)/24);display:flex;flex-direction:column}
+.screen::before{content:'';position:absolute;z-index:6;top:.6em;left:50%;transform:translateX(-50%);width:5.4em;height:1.5em;background:#0B0B0B;border-radius:1em}
+.screen::after{content:'';position:absolute;z-index:6;bottom:.55em;left:50%;transform:translateX(-50%);width:6em;height:.38em;border-radius:1em;background:#0B0B0B;opacity:.85}
+.screen.dk{background:#121212;color:var(--cream)}
+.screen.dk::after{background:var(--cream);opacity:.9}
+.status{display:flex;justify-content:space-between;align-items:center;padding:1em 1.7em .3em;font-weight:700;font-size:.85em}
+.status svg{width:4.6em;height:1.1em;fill:currentColor}
+.app{flex:1;display:flex;flex-direction:column;gap:.8em;padding:.8em 1.1em 1.4em}
+/* --- componentes internos de la app --- */
+.a-top{display:flex;justify-content:space-between;align-items:center}
+.a-top .gicon{width:1.5em;height:1.5em;fill:currentColor}
+.a-avatar{width:2.1em;height:2.1em;border-radius:50%;background:linear-gradient(135deg,var(--forest),var(--green-lt))}
+.a-head{display:flex;flex-direction:column;gap:.15em}
+.a-head b{font:700 1.05em var(--jak)}
+.a-head small,.a-txt small{color:var(--gray-lt);font-size:.74em;font-weight:500}
+.a-card{background:#fff;border:1px solid rgba(26,26,26,.06);border-radius:1em;padding:.9em;display:flex;flex-direction:column;gap:.6em;box-shadow:0 .5em 1.6em rgba(26,26,26,.06)}
+.screen.dk .a-card{background:#1E1E1E;border-color:rgba(245,240,232,.08)}
+.a-line{display:flex;align-items:center;gap:.6em}
+.a-ico{font-size:1.25em}
+.a-txt{display:flex;flex-direction:column;gap:.1em}
+.a-txt b{font:700 .92em var(--jak)}
+.a-btn{margin-left:auto;background:var(--forest);color:var(--cream);border:0;border-radius:.7em;padding:.55em 1em;font-weight:700;font-size:.74em}
+.a-btn.big{margin:0;width:100%;padding:1em;font-size:.85em;letter-spacing:.08em;border-radius:.9em}
+.a-bar{height:.45em;background:rgba(26,26,26,.08);border-radius:1em;overflow:hidden}
+.a-bar i{display:block;height:100%;background:var(--forest);border-radius:inherit}
+.a-pct{margin-left:auto;font-weight:800;color:var(--forest);font-size:.85em}
+.a-week{display:flex;gap:.45em}
+.a-week span{width:1.7em;height:1.7em;border-radius:50%;background:rgba(26,26,26,.08);display:grid;place-items:center;font-size:.62em;font-weight:700;color:var(--gray-lt)}
+.a-week .on{background:var(--forest);color:var(--cream)}
+.tabbar{margin-top:auto;display:flex;justify-content:space-around;align-items:center;padding:.8em 1em;border-top:1px solid rgba(26,26,26,.07);background:#fff}
+.tabbar svg{width:1.5em;height:1.5em;color:#A49C8F;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.tabbar .act{color:var(--forest)}
+/* workout player */
+.wp-k{font-size:.68em;letter-spacing:.22em;color:var(--gray-lt);text-align:center;font-weight:700}
+.wp-t{font:800 1.15em var(--jak);text-align:center;letter-spacing:.02em}
+.wp-timer{font:800 3.6em/1 var(--jak);color:var(--amber);text-align:center;margin:.15em 0}
+.wp-timer small{display:block;font:700 .26em var(--inter);letter-spacing:.2em;color:var(--gray-lt);margin-top:.5em}
+.wp-w{display:flex;justify-content:space-between;align-items:center;background:#1E1E1E;border:1px solid rgba(245,240,232,.08);border-radius:.9em;padding:.85em .9em;font-size:.85em}
+.wp-w b{color:var(--cream)}
+.chips i{font-style:normal;display:inline-block;background:rgba(245,240,232,.14);border-radius:.5em;padding:.3em .55em;margin-left:.35em;font-weight:700;font-size:.85em}
+.wp-dots{display:flex;gap:.45em;justify-content:center}
+.wp-dots i{width:.55em;height:.55em;border-radius:50%;background:rgba(245,240,232,.2)}
+.wp-dots .on{background:var(--amber)}
+/* meals */
+.m-item{background:#fff;border:1px solid rgba(26,26,26,.06);border-radius:1em;padding:.85em .9em;display:flex;flex-direction:column;gap:.45em;box-shadow:0 .4em 1.2em rgba(26,26,26,.05)}
+.m-top{display:flex;justify-content:space-between;align-items:center;font-size:.72em;color:var(--gray-lt);font-weight:700;letter-spacing:.06em}
+.m-top span:last-child{border-radius:2em;padding:.35em .8em}
+.done{background:var(--forest);color:var(--cream)}
+.swap{background:rgba(200,121,58,.15);color:var(--amber)}
+.pend{background:rgba(26,26,26,.07);color:var(--gray-lt)}
+.m-name{font:700 .92em var(--jak)}
+/* progress */
+.ba{display:flex;gap:.6em}
+.ba div{flex:1;height:6.2em;border-radius:.9em;position:relative}
+.ba .b1{background:linear-gradient(140deg,#E7DFCF,#C6B99F)}
+.ba .b2{background:linear-gradient(140deg,var(--forest-hi),#22462F)}
+.ba span{position:absolute;bottom:.45em;left:.55em;font-size:.58em;font-weight:800;letter-spacing:.08em;color:#fff}
+.ba .b1 span{color:var(--carbon)}
+.ba-cap{text-align:center;font-size:.74em;color:var(--gray-lt);font-weight:600}
+.p-chips{display:flex;gap:.5em}
+.p-chips b{flex:1;background:#fff;border:1px solid rgba(26,26,26,.06);border-radius:.9em;padding:.6em .2em;text-align:center;font:800 .85em var(--jak);box-shadow:0 .4em 1.2em rgba(26,26,26,.05)}
+.p-chips small{display:block;color:var(--gray-lt);font-size:.72em;font-weight:600;margin-top:.2em}
+.p-chart{display:flex;align-items:flex-end;gap:.4em;height:5.4em;background:#fff;border:1px solid rgba(26,26,26,.06);border-radius:1em;padding:.7em}
+.p-chart i{flex:1;background:rgba(45,90,61,.25);border-radius:.35em}
+.p-chart .hi{background:var(--forest)}
+/* editor */
+.adv{margin-left:auto;background:rgba(45,90,61,.12);color:var(--forest);font-size:.62em;font-weight:800;letter-spacing:.08em;padding:.4em .8em;border-radius:2em;white-space:nowrap}
+.e-item{background:#fff;border:1px solid rgba(26,26,26,.07);border-radius:1em;padding:.8em;display:flex;align-items:center;gap:.7em}
+.handle{width:.85em;height:1em;background:repeating-linear-gradient(rgba(26,26,26,.35) 0 .13em,transparent .13em .34em)}
+.e-ic{margin-left:auto;color:#A49C8F;font-size:.85em}
+.e-add{border:1.5px dashed rgba(45,90,61,.45);color:var(--forest);background:transparent;border-radius:1em;padding:.8em;text-align:center;font-weight:700;font-size:.8em}
+
+/* ============ SECCIÓN 1 · HERO ============ */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:76px 40px 64px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(26,26,26,.16) 1px,transparent 1.4px);background-size:14px 14px;-webkit-mask-image:radial-gradient(640px 520px at 76% 34%,#000 0%,transparent 72%);mask-image:radial-gradient(640px 520px at 76% 34%,#000 0%,transparent 72%);pointer-events:none}
+.hero h1{font:800 clamp(34px,4.6vw,58px)/1.06 var(--jak);letter-spacing:-.02em}
+.hero h1 .accent{color:var(--forest)}
+.star{display:inline-block;width:.55em;height:.55em;color:var(--amber);vertical-align:baseline;transform:translateY(-.35em)}
+.star svg{width:100%;height:100%;fill:currentColor}
+.lead{margin:26px 0 34px;max-width:560px;color:var(--gray);font-size:17px;line-height:1.65}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap}
+.proof{display:flex;gap:30px;align-items:center;margin-top:44px;flex-wrap:wrap;color:#A79E90;font-weight:600;font-size:15px}
+.proof b{color:var(--forest);font-weight:800}
+.proof .st{color:var(--amber)}
+.hero-vis{position:relative;display:flex;justify-content:center;padding:20px 0}
+.hero-vis::before{content:'';position:absolute;inset:-30px;background:repeating-radial-gradient(circle at 50% 46%,transparent 0 62px,rgba(26,26,26,.07) 62px 63px);pointer-events:none}
+.blob{position:absolute;top:9%;right:0;width:min(420px,92%);height:84%;background:var(--forest);border-radius:56px}
+.hero-vis .phone{--w:340px;transform:rotate(5deg);position:relative;z-index:2;transition:transform .5s}
+.hero-vis .phone:hover{transform:rotate(2deg)}
+
+/* ============ SECCIÓN 2 · BANDA + 3 CARDS ============ */
+.band{background:var(--carbon);color:var(--cream);border-radius:28px;padding:76px 48px 200px;text-align:center;position:relative;overflow:hidden}
+.band::before,.band::after{content:'';position:absolute;left:50%;top:-160px;transform:translateX(-50%);border:1px solid rgba(245,240,232,.12);border-radius:50%}
+.band::before{width:560px;height:560px}
+.band::after{width:820px;height:820px}
+.band .h2{font-size:clamp(28px,4vw,44px);position:relative;z-index:1}
+.glow{background:var(--forest);padding:.02em .22em .06em;border-radius:.16em;box-shadow:0 0 44px rgba(62,122,84,.95)}
+.band-sub{margin-top:14px;color:rgba(245,240,232,.6);font-size:16px;font-style:italic;position:relative;z-index:1}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:-150px;position:relative;z-index:2}
+.fcard{background:#FCFAF5;border-radius:20px;padding:30px 24px 0;overflow:hidden;box-shadow:0 30px 70px rgba(20,15,5,.18);text-align:center;display:flex;flex-direction:column}
+.fnum{font:800 56px/1 var(--jak);color:rgba(45,90,61,.18)}
+.fcard h3{font:700 21px var(--jak);margin:8px 0 10px;letter-spacing:-.01em}
+.fcard p{font-size:14.5px;color:var(--gray);line-height:1.6;margin-bottom:12px}
+.fcard .phone{--w:238px;box-shadow:0 -10px 50px rgba(20,15,5,.25);margin:8px auto -150px}
+
+/* ============ SECCIÓN 3 · DASHBOARD ANOTADO ============ */
+.dash-wrap{position:relative;width:fit-content;margin:64px auto 0}
+.dash-wrap .phone{--w:400px}
+.anno{position:absolute;display:flex;align-items:center;gap:10px;width:230px;font-size:14px;font-weight:600;color:var(--forest)}
+.anno .ln{flex:0 0 56px;height:1.5px;background:var(--forest);position:relative}
+.anno .ln::after{content:'';position:absolute;top:-2.5px;width:6px;height:6px;border-radius:50%;background:var(--forest)}
+.anno.al{flex-direction:row;text-align:right;justify-content:flex-end}
+.anno.al .ln::after{right:-3px}
+.anno.ar .ln::after{left:-3px}
+.anno.a1{left:-262px;top:5%}
+.anno.a2{right:-272px;top:28%}
+.anno.a3{right:-272px;top:52%}
+.anno.a4{left:-262px;top:76%}
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:72px}
+.mcard{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:22px}
+.mcard b{font:700 16px var(--jak);display:block;margin-bottom:6px}
+.mcard p{font-size:14px;color:var(--gray);line-height:1.55}
+
+/* ============ SPLITS (zigzag) ============ */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-top:64px}
+.split .phone{--w:320px}
+.split.rev .ph{order:2}
+.stack{display:flex;flex-direction:column;gap:16px}
+.dcard{background:#242424;border:1px solid rgba(245,240,232,.12);border-radius:12px;padding:20px}
+.dcard .icn{font-size:20px}
+.dcard b{font:700 16px var(--jak);color:var(--cream);display:block;margin:8px 0 6px}
+.dcard p{font-size:14px;color:rgba(245,240,232,.62);line-height:1.55}
+.gcard{background:rgba(245,240,232,.10);border:1px solid rgba(245,240,232,.22);border-radius:12px;padding:20px}
+.gcard b{font:700 16px var(--jak);color:var(--cream);display:block;margin:8px 0 6px}
+.gcard p{font-size:14px;color:rgba(245,240,232,.72);line-height:1.55}
+.quote{margin-top:60px;text-align:center;font-size:17px;line-height:1.6}
+.panel{border-radius:28px;padding:84px 56px;position:relative;overflow:hidden}
+.panel.dark{background:var(--carbon);color:var(--cream)}
+.panel.forest{background:var(--forest);color:var(--cream)}
+.panel.dark::before,.panel.carbon::before{content:'';position:absolute;left:50%;top:-180px;transform:translateX(-50%);width:640px;height:640px;border:1px solid rgba(245,240,232,.10);border-radius:50%}
+.panel .sub{color:rgba(245,240,232,.6)}
+.panel.dark .quote{color:rgba(245,240,232,.8)}
+.panel.forest .quote{color:var(--cream);font:800 20px var(--jak);font-style:normal;letter-spacing:-.01em}
+/* nutrición */
+.nut-col{display:flex;flex-direction:column;gap:24px}
+.quote.inline{margin:0;text-align:left;color:var(--carbon);font-size:17px}
+.edu{background:rgba(45,90,61,.06);border:1px solid rgba(45,90,61,.25);border-radius:12px;padding:26px}
+.edu .icn{font-size:24px}
+.edu b{font:700 17px var(--jak);display:block;margin:10px 0 8px}
+.edu p{font-size:15px;color:rgba(26,26,26,.85);line-height:1.6}
+
+/* ============ SECCIÓN 8 · TABLA ============ */
+.tcard{background:var(--white);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:52px;box-shadow:0 24px 60px rgba(20,15,5,.10)}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:660px}
+th,td{padding:15px 18px;font-size:14.5px;border-bottom:1px solid var(--line);text-align:center}
+thead th{background:var(--forest);color:var(--cream);font:700 14px var(--jak);letter-spacing:.03em}
+tbody th[scope=row]{text-align:left;font-weight:600}
+.colA{background:rgba(45,90,61,.06);color:var(--forest);font-weight:700}
+thead .colA{background:#22462F;color:var(--cream)}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:0}
+tr.price th,tr.price td{font-weight:800;font-family:var(--jak)}
+.ic{width:20px;height:20px;vertical-align:middle;margin:auto}
+.ok{color:#5E9E6F}.no{color:#C9C1B2}.wa{color:var(--amber)}
+
+/* ============ SECCIÓN 9 · CTA FINAL ============ */
+.panel.carbon{background:var(--carbon);color:var(--cream);text-align:center;padding:96px 56px}
+.panel.carbon .h2{font-size:clamp(34px,4.4vw,52px)}
+.panel.carbon .sub{color:rgba(245,240,232,.75);max-width:520px;margin:16px auto 40px}
+.panel.carbon .cta-row{justify-content:center}
+.consult{display:block;margin-top:36px;font:600 16px var(--inter);color:var(--amber);text-decoration:none}
+.consult:hover{text-decoration:underline}
+.consult small{display:block;color:rgba(245,240,232,.6);font-weight:400;margin-bottom:6px}
+
+/* ============ FOOTER ============ */
+.foot-wrap{padding:0 40px 40px}
+.foot{background:#141414;border-radius:24px;color:rgba(245,240,232,.72);padding:44px 48px;display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;justify-content:space-between}
+.foot .brand{color:var(--cream)}
+.foot .brand svg{color:var(--green-lt)}
+.foot p{font-size:13.5px;margin-top:12px;max-width:340px;line-height:1.6}
+.fnav{display:flex;gap:48px;flex-wrap:wrap}
+.fnav h5{font:700 14px var(--jak);color:var(--cream);margin-bottom:14px}
+.fnav a{display:block;font-size:13.5px;color:rgba(245,240,232,.62);text-decoration:none;margin-bottom:9px}
+.fnav a:hover{color:var(--cream)}
+.legal{width:100%;border-top:1px solid rgba(245,240,232,.12);padding-top:20px;display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;color:rgba(245,240,232,.45)}
+.legal a{color:inherit;text-decoration:none}
+.legal a:hover{color:var(--cream)}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:1180px){.anno{display:none}}
+@media(max-width:1024px){
+  .hero{grid-template-columns:1fr;padding:56px 32px 40px}
+  .hero-vis{margin-top:32px}
+  .split{grid-template-columns:1fr;gap:44px}
+  .split.rev .ph{order:0}
+  .cards3{grid-template-columns:1fr;max-width:480px;margin-left:auto;margin-right:auto;margin-top:-140px}
+}
+@media(max-width:768px){
+  .wrap{padding:0 20px}
+  .sec{padding:64px 0}
+  .nav{padding:14px 20px}
+  .nlink{display:none}
+  .hero{padding:40px 20px 32px}
+  .band{padding:56px 22px 150px}
+  .cards3{margin-top:-100px}
+  .fcard .phone{--w:220px;margin-bottom:-130px}
+  .panel{padding:60px 22px}
+  .panel.carbon{padding:72px 22px}
+  .mini3{grid-template-columns:1fr}
+  .dash-wrap .phone{--w:320px}
+  .foot{padding:34px 26px}
+  .foot-wrap{padding:0 20px 24px}
+  .proof{gap:16px;font-size:13px}
+}
+@media(max-width:560px){
+  .hero .btn{width:100%}
+  .panel.carbon .btn-xl{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- Sprite de iconos -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M7.8 12.6l2.7 2.7 5.7-6" fill="none" stroke="#F5F0E8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-no" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M9 9l6 6M15 9l-6 6" fill="none" stroke="#F5F0E8" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 7v6" stroke="#F5F0E8" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.4" fill="#F5F0E8"/></symbol>
+  <symbol id="i-apple" viewBox="0 0 384 512"><path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.5-44.6-35.3-2.7-74 20.9-88.9 20.9-15.8 0-52.1-19.7-80.5-19.7-58.8 1-112.4 42.9-112.4 128.5 0 25.4 4.6 51.6 13.8 78.6 12.3 35.6 56.9 122.9 103.4 121.4 24.3-.6 41.5-17.3 72.1-17.3 29.7 0 45.6 17.3 72.7 17.3 46.9-.7 87.3-79.9 99.3-115.5-63.3-30.4-65.3-88.9-65-84.8zM255.6 84.8c27.1-32.7 24.6-62.5 23.8-73-23.5 1.4-50.6 15.6-66.9 34.9-18 20.9-28.5 46.9-26.2 71.9 25.4 2 48.6-11.2 69.3-33.8z"/></symbol>
+  <symbol id="i-android" viewBox="0 0 24 24"><path fill="currentColor" d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.63.63 0 0 0-.83.22l-1.88 3.24a11.5 11.5 0 0 0-8.94 0L5.65 5.67a.63.63 0 0 0-.83-.22c-.3.16-.42.54-.26.85L6.4 9.48A10.86 10.86 0 0 0 1 18h22a10.86 10.86 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6z"/></symbol>
+  <symbol id="i-logo" viewBox="0 0 32 32"><rect x="2" y="13" width="5" height="6" rx="1.5" fill="currentColor"/><rect x="25" y="13" width="5" height="6" rx="1.5" fill="currentColor"/><rect x="8" y="10" width="4" height="12" rx="2" fill="currentColor"/><rect x="20" y="10" width="4" height="12" rx="2" fill="currentColor"/><rect x="12" y="14.5" width="8" height="3" rx="1.5" fill="currentColor"/></symbol>
+</svg>
+
+<!-- ============ SCREEN TEMPLATES (se inyectan en los phones) ============ -->
+<template id="t-status"><div class="status"><span>9:41</span><svg viewBox="0 0 60 12"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="1" width="3" height="11" rx="1"/><path d="M24 4.5a9 9 0 0 1 12 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M26.5 7.5a5.5 5.5 0 0 1 7 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="30" cy="10" r="1.6"/><rect x="44" y="2" width="12" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="45.5" y="3.5" width="7" height="5" rx="1"/><rect x="57" y="4.5" width="2" height="3" rx="1"/></svg></div></template>
+
+<template id="t-dash">
+  <div class="a-top"><svg class="gicon" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg><span class="a-avatar"></span></div>
+  <div class="a-head"><b>Buenos días, Carlos.</b><small>Día 14 · Martes</small></div>
+  <div class="a-card"><div class="a-line"><span class="a-ico">🏋️</span><div class="a-txt"><b>Push Day</b><small>45 min · 6 ejercicios</small></div><button class="a-btn">Comenzar</button></div></div>
+  <div class="a-card"><div class="a-line"><span class="a-ico">🍽️</span><div class="a-txt"><b>1,200 / 2,000 kcal</b><small>P 120g · C 165g · G 60g</small></div></div><div class="a-bar"><i style="width:60%"></i></div></div>
+  <div class="a-card"><div class="a-line"><span class="a-ico">🔥</span><div class="a-txt"><b>3 días seguidos</b><small>Sigue así</small></div></div><div class="a-week"><span class="on">L</span><span class="on">M</span><span class="on">X</span><span>J</span><span>V</span><span>S</span><span>D</span></div></div>
+</template>
+<template id="t-tab"><div class="tabbar"><svg class="act" viewBox="0 0 24 24"><path d="M4 10v4M7 8v8M17 8v8M20 10v4M7 12h10"/></svg><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><svg viewBox="0 0 24 24"><path d="M7 3v7a2.5 2.5 0 0 0 5 0V3M9.5 12v9M17 3c-2 2.5-2 6 0 8v10"/></svg><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></div></template>
+
+<template id="t-work">
+  <p class="wp-k">SERIE 2 DE 4</p>
+  <h4 class="wp-t">PRESS BANCA PLANO</h4>
+  <div class="wp-timer">0:45<small>RESTAN</small></div>
+  <div class="wp-w"><span>Peso: <b>80 kg</b></span><span class="chips"><i>+2.5</i><i>−2.5</i></span></div>
+  <button class="a-btn big">COMENZAR SERIE 2</button>
+  <div class="wp-dots"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+</template>
+
+<template id="t-meals">
+  <div class="a-head"><b>Comidas de hoy</b><small>Martes · Plan de nutrición</small></div>
+  <div class="a-card"><div class="a-line"><div class="a-txt"><b>1,200 / 2,000 kcal</b><small>60% completado</small></div><span class="a-pct">60%</span></div><div class="a-bar"><i style="width:60%"></i></div></div>
+  <div class="m-item"><div class="m-top"><span>🌅 DESAYUNO</span><span class="done">✓ Comí esto</span></div><div class="m-name">Avena con plátano</div></div>
+  <div class="m-item"><div class="m-top"><span>☀️ ALMUERZO</span><span class="swap">🔄 Sustituir</span></div><div class="m-name">Pollo con arroz</div></div>
+  <div class="m-item"><div class="m-top"><span>🌙 CENA</span><span class="pend">Pendiente</span></div><div class="m-name">Salmón con verduras</div></div>
+</template>
+
+<template id="t-prog">
+  <div class="a-head"><b>Tu progreso</b><small>Últimos 60 días</small></div>
+  <div class="ba"><div class="b1"><span>ANTES</span></div><div class="b2"><span>DESPUÉS</span></div></div>
+  <p class="ba-cap">82 kg → 78 kg · 60 días</p>
+  <div class="p-chips"><b>−4 kg<small>Peso</small></b><b>+2 PRs<small>Fuerza</small></b><b>12<small>Semanas</small></b></div>
+  <div class="p-chart"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:70%"></i><i style="height:62%"></i><i class="hi" style="height:86%"></i></div>
+</template>
+
+<template id="t-edit">
+  <div class="a-line"><div class="a-head"><b>Mi rutina de pecho</b><small>Modo avanzado</small></div><span class="adv">AVANZADO ON</span></div>
+  <div class="e-item"><span class="handle"></span><div class="a-txt"><b>1. Press banca</b><small>4×8-12 · 90 s · 80 kg</small></div><span class="e-ic">✎</span></div>
+  <div class="e-item"><span class="handle"></span><div class="a-txt"><b>2. Press inclinado</b><small>3×10-12 · 75 s · 28 kg</small></div><span class="e-ic">✎</span></div>
+  <div class="e-item"><span class="handle"></span><div class="a-txt"><b>3. Aperturas</b><small>3×12-15 · 60 s · 14 kg</small></div><span class="e-ic">✎</span></div>
+  <button class="e-add">+ Añadir ejercicio</button>
+</template>
+
+<div class="page">
+
+  <!-- NAV -->
+  <header class="nav">
+    <!-- Reemplaza "Forja" por tu nombre/marca -->
+    <a class="brand" href="#"><svg><use href="#i-logo"/></svg>Forja Method</a>
+    <a class="nlink" href="/">El Método</a>
+    <a class="btn btn-forest" href="#descargar">Descargar App</a>
+  </header>
+
+  <main>
+  <!-- ============ 1 · HERO ============ -->
+  <section class="hero">
+    <div>
+      <h1>TU GIMNASIO.<br>TU COCINA.<br>TU PROGRESO.<span class="star"><svg><use href="#i-star"/></svg></span><br><span class="accent">TODO EN UNA SOLA APP.</span></h1>
+      <p class="lead">Registra entrenos, sigue tu plan de alimentación y ve tu progreso real. Sin complicaciones. Sin curvas de aprendizaje. Sin excusas.</p>
+      <div class="cta-row">
+        <a class="btn btn-dark" href="#descargar"><svg><use href="#i-apple"/></svg>Descargar para iOS</a>
+        <a class="btn btn-ghost" href="#descargar"><svg><use href="#i-android"/></svg>Descargar para Android</a>
+      </div>
+      <div class="proof">
+        <span><b>4.8</b> <span class="st">★</span> App Store</span>
+        <span><b>4.7</b> <span class="st">★</span> Google Play</span>
+        <span><b>10K+</b> descargas</span>
+        <span><b>#3</b> Salud y Fitness</span>
+      </div>
+    </div>
+    <div class="hero-vis">
+      <div class="blob"></div>
+      <div class="phone" data-screen="dash"></div>
+    </div>
+  </section>
+
+  <!-- ============ 2 · TRES RAZONES ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="band rv">
+        <h2 class="h2">TRES RAZONES PARA <span class="glow">DESCARGAR</span></h2>
+        <p class="band-sub">La herramienta que hace simple lo que el fitness complicó.</p>
+      </div>
+      <div class="cards3">
+        <article class="fcard rv">
+          <span class="fnum">01.</span>
+          <h3>ENTRENA SIN PENSAR</h3>
+          <p>Abre la app. Ve qué toca. Dale al botón. La app te dice el peso, las reps y el descanso. Tú solo levantas.</p>
+          <p>Timer gigante. Botones para manos sudadas. Modo oscuro automático en el gym.</p>
+          <div class="phone" data-screen="work" data-theme="dark"></div>
+        </article>
+        <article class="fcard rv">
+          <span class="fnum">02.</span>
+          <h3>COME SIN COMPLICARTE</h3>
+          <p>Tu plan ya está hecho. Solo confirma que comiste. Un toque. 5 segundos. Listo.</p>
+          <p>No busques alimentos. No peses ingredientes. No calcules macros. La app lo hace por ti.</p>
+          <div class="phone" data-screen="meals"></div>
+        </article>
+        <article class="fcard rv">
+          <span class="fnum">03.</span>
+          <h3>VE LO QUE EL ESPEJO NO MUESTRA</h3>
+          <p>Fotos antes/después. Gráficos de fuerza. PRs. Volumen. Racha. Todo en un solo lugar.</p>
+          <p>Porque el progreso que no ves es el progreso que te hace abandonar.</p>
+          <div class="phone" data-screen="prog"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3 · DASHBOARD EN DETALLE ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="center rv">
+        <h2 class="h2">TU DÍA, EN UNA PANTALLA</h2>
+        <p class="sub">Todo lo que necesitas, en una pantalla.</p>
+      </div>
+      <div class="dash-wrap rv">
+        <span class="anno al a1">Saludo personalizado<i class="ln"></i></span>
+        <span class="anno ar a2"><i class="ln"></i>Entreno del día con CTA</span>
+        <span class="anno ar a3"><i class="ln"></i>Comidas con barra de progreso</span>
+        <span class="anno al a4">Progreso semanal<i class="ln"></i></span>
+        <div class="phone" data-screen="dash"></div>
+      </div>
+      <div class="mini3">
+        <div class="mcard rv"><b>Entreno del día</b><p>Un toque para empezar. La app ya sabe qué toca hoy.</p></div>
+        <div class="mcard rv"><b>Comidas del día</b><p>Registra en 5 segundos con tu plan ya preparado.</p></div>
+        <div class="mcard rv"><b>Progreso semanal</b><p>Ve tu racha y tu avance de un vistazo.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4 · WORKOUT PLAYER ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="panel dark rv">
+        <div class="center">
+          <h2 class="h2">DISEÑADA PARA EL GIMNASIO</h2>
+          <p class="sub it">No para la oficina.</p>
+        </div>
+        <div class="split">
+          <div class="ph"><div class="phone" data-screen="work" data-theme="dark"></div></div>
+          <div class="stack">
+            <div class="dcard rv"><span class="icn">🔤</span><b>Texto gigante</b><p>Legible a 1 metro de distancia. Sin lupas entre serie y serie.</p></div>
+            <div class="dcard rv"><span class="icn">⏱️</span><b>Timer gigante</b><p>64px, ámbar, cuenta regresiva. Tu descanso, siempre a la vista.</p></div>
+            <div class="dcard rv"><span class="icn">👆</span><b>Botones gigantes</b><p>72px+, para manos sudadas. Cero toques fallidos.</p></div>
+          </div>
+        </div>
+        <p class="quote">"Modo oscuro automático cuando entras al gym.<br>No deslumbra. No distrae. Solo funciona."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5 · NUTRICIÓN ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="center rv">
+        <h2 class="h2">REGISTRA EN 5 SEGUNDOS</h2>
+        <p class="sub it">No en 5 minutos.</p>
+      </div>
+      <div class="split rev">
+        <div class="ph"><div class="phone" data-screen="meals"></div></div>
+        <div class="nut-col">
+          <p class="quote inline">"Tu plan ya está hecho por un nutriólogo. Solo confirma que comiste. Un toque. Listo."</p>
+          <div class="edu rv">
+            <span class="icn">🎓</span>
+            <b>EDUCACIÓN NUTRICIONAL INTEGRADA</b>
+            <p>Cada ingrediente tiene una explicación: qué contiene, por qué es útil para el gym y cómo optimizarlo. Con videos cortos de tu coach explicando cada alimento. Como sus TikToks, pero dentro de la app.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6 · PROGRESO ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="center rv">
+        <h2 class="h2">VE LO QUE EL ESPEJO NO MUESTRA</h2>
+      </div>
+      <div class="split">
+        <div class="ph"><div class="phone" data-screen="prog"></div></div>
+        <div class="stack">
+          <div class="mcard rv" style="border:1px solid var(--line)"><b>📸 Fotos antes/después</b><p>Slider interactivo. La evidencia que tu memoria no registra.</p></div>
+          <div class="mcard rv" style="border:1px solid var(--line)"><b>📊 Gráficos de peso, fuerza y volumen</b><p>Tendencia real, no impresiones. Datos que motivan.</p></div>
+          <div class="mcard rv" style="border:1px solid var(--line)"><b>🏆 PRs y records</b><p>Tu mejor versión, cada semana. Celebra lo que sí está funcionando.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7 · MODO AVANZADO ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="panel forest rv">
+        <div class="center">
+          <h2 class="h2">¿YA SABES LO QUE HACES?</h2>
+          <p class="sub">Activa el Modo Avanzado.</p>
+        </div>
+        <div class="split rev">
+          <div class="ph"><div class="phone" data-screen="edit"></div></div>
+          <div class="stack">
+            <div class="gcard rv"><span class="icn">✏️</span><b>Crea y edita rutinas desde cero</b><p>Series, reps, descansos y cargas: todo bajo tu control.</p></div>
+            <div class="gcard rv"><span class="icn">📱</span><b>Importa tus datos</b><p>Viene de Strong, Hevy u otra app? Trae tu historial completo.</p></div>
+            <div class="gcard rv"><span class="icn">📊</span><b>Analiza con métricas avanzadas</b><p>Volumen, intensidad y progreso con detalle de coach.</p></div>
+          </div>
+        </div>
+        <p class="quote">La misma app. Dos modos. Tú decides.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8 · COMPARATIVA ============ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="center rv"><h2 class="h2">NO ES OTRA APP DE FITNESS</h2></div>
+      <div class="tcard rv"><div class="tscroll">
+        <table>
+          <thead><tr><th>Función</th><th class="colA">FORJA</th><th>Strong</th><th>MyFitnessPal</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Plan de entreno</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td></tr>
+            <tr><th scope="row">Plan de dieta</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td><td><svg class="ic ok"><use href="#i-ok"/></svg></td></tr>
+            <tr><th scope="row">Nutriólogo real</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td></tr>
+            <tr><th scope="row">Registro rápido</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td></tr>
+            <tr><th scope="row">Progreso visual</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic wa"><use href="#i-wa"/></svg></td><td><svg class="ic wa"><use href="#i-wa"/></svg></td></tr>
+            <tr><th scope="row">Fotos antes/después</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td></tr>
+            <tr><th scope="row">Educación nutricional</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td></tr>
+            <tr><th scope="row">Modo oscuro gym</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic wa"><use href="#i-wa"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td></tr>
+            <tr><th scope="row">Sin anuncios</th><td class="colA"><svg class="ic ok"><use href="#i-ok"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td><td><svg class="ic no"><use href="#i-no"/></svg></td></tr>
+            <tr class="price"><th scope="row">Precio</th><td class="colA">$9.99/mes</td><td>$4.99/mes</td><td>Gratis + ads</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+      <p class="quote rv" style="color:rgba(26,26,26,.85)">"Strong es para quien ya sabe qué hacer. MyFitnessPal es para contar calorías.<br>Forja es para quien quiere resultados con guía real."</p>
+    </div>
+  </section>
+
+  <!-- ============ 9 · CTA FINAL ============ -->
+  <section class="sec" id="descargar">
+    <div class="wrap">
+      <div class="panel carbon rv">
+        <h2 class="h2">EMPIEZA HOY.</h2>
+        <p class="sub">Descarga la app y empieza tu primer entreno en menos de 5 minutos.</p>
+        <div class="cta-row">
+          <a class="btn btn-forest btn-xl" href="#"><svg><use href="#i-apple"/></svg>Descargar iOS · Gratis</a>
+          <a class="btn btn-forest btn-xl" href="#"><svg><use href="#i-android"/></svg>Descargar Android · Gratis</a>
+        </div>
+        <a class="consult" href="/"><small>¿Quieres el método completo con coach y nutriólogo?</small>Agenda tu consulta →</a>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- ============ 10 · FOOTER ============ -->
+  <div class="foot-wrap">
+    <footer class="foot">
+      <div>
+        <a class="brand" href="#"><svg><use href="#i-logo"/></svg>Forja Method</a>
+        <p>La herramienta detrás del método. Entreno, nutrición y progreso en tu bolsillo.</p>
+      </div>
+      <nav class="fnav">
+        <div><h5>Producto</h5><a href="/">Landing principal</a><a href="/app">App</a><a href="#descargar">Descargar</a></div>
+        <div><h5>Comunidad</h5><a href="#">TikTok</a><a href="#">Instagram</a><a href="#">YouTube</a></div>
+        <div><h5>Soporte</h5><a href="#">Help Center</a><a href="#">Contacto</a><a href="/">Agenda tu consulta</a></div>
+      </nav>
+      <div class="legal">
+        <span>© 2026 Forja Method. Todos los derechos reservados.</span>
+        <a href="#">Términos</a><a href="#">Privacidad</a><a href="#">Soporte</a>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script>
+// Inyecta las pantallas en cada phone mockup
+const T = id => document.getElementById(id).innerHTML;
+document.querySelectorAll('.phone[data-screen]').forEach(p => {
+  const k = p.dataset.screen, dk = p.dataset.theme === 'dark';
+  p.innerHTML = `<div class="screen${dk ? ' dk' : ''}">${T('t-status')}<div class="app">${T('t-' + k)}</div>${k === 'dash' ? T('t-tab') : ''}</div>`;
+});
+// Reveal on scroll
+const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), {threshold:.12});
+document.querySelectorAll('.rv').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
